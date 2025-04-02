@@ -154,6 +154,16 @@ Hooks.once("init", () => {
     default: 1.0,
     type: Number
   });
+
+  // Register dwell time setting
+  game.settings.register("stream-visibility-tools", "dwellTime", {
+    name: "Popup Dwell Time (ms)",
+    hint: "Duration in milliseconds that pop-up windows (e.g., Journal Entries, Actor sheets) remain open when shown to players.",
+    scope: "world",
+    config: true,
+    type: Number,
+    default: 5000,
+  });
 });
 
 // Register target user setting and initialize features when ready
@@ -419,6 +429,8 @@ function initializeStreamCameraControl() {
       console.log(`Stream Visibility Tools | Token ${token.name} is not visible; skipping pan.`);
     }
   });
+
+// Add additional hooks for other application types as needed
   
   // Add additional hooks for debugging
   Hooks.on("ready", () => {
@@ -446,3 +458,29 @@ function initializeStreamCameraControl() {
     }
   });
 }
+
+// Function to handle automatic closing of pop-up windows
+function handleAutoClose(app, html, data) {
+  if (!game.settings.settings.has("stream-visibility-tools.targetUser")) return;
+  
+  const targetUser = game.settings.get("stream-visibility-tools", "targetUser");
+  if (!targetUser || game.user.id !== targetUser) return;
+  
+  // Retrieve the configured dwell time
+  const dwellTime = game.settings.get("stream-visibility-tools", "dwellTime");
+
+  // Ensure the dwell time is a positive number
+  if (dwellTime > 0) {
+    // Set a timeout to close the application after the dwell time
+    setTimeout(() => {
+      // Ensure the application is still rendered before closing
+      if (app.rendered) {
+        app.close();
+      }
+    }, dwellTime);
+  }
+}
+
+  // Hook into the rendering of relevant applications
+Hooks.on("renderJournalSheet", handleAutoClose);
+Hooks.on("renderActorSheet", handleAutoClose);
