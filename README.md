@@ -2,7 +2,7 @@
 
 A Foundry VTT module that optimizes a designated viewer user's interface for clean, distraction-free OBS recording or streaming.
 
-## 🎥 What It Does
+## What It Does
 
 This module lets you assign a specific user account — typically one used in an OBS browser source — as the "viewer." Once assigned, that user's UI will be automatically customized to minimize visual noise and maximize audience clarity.
 
@@ -40,32 +40,25 @@ When combat ends:
 - When tokens are added to the combat tracker, it pops out automatically on the viewer’s screen
 - When combat ends, it closes itself
 
-## 🧠 Use Case
-
-Perfect for streamers using OBS and browser sources:
-- Viewer account logs into Foundry VTT via the browser source
-- This module handles camera movement, hides unimportant UI, and keeps the stream clean and immersive
-- You stay hands-free during the session, while still showing only the most relevant game action
-
-## ⚠️ Notes & Caveats
+## Notes & Caveats
 
 - This is my **first Foundry module**, and my **first JavaScript project** — so expect a few rough edges.
 - It was built to match exactly what I wanted for my own games — no more, no less.
 - If you have ideas for how to make it better, they’re probably awesome and I just didn’t think of them yet. Suggestions and pull requests are very welcome.
 
-## 🛣️ Planned Improvements
+## Planned Improvements
 
 - Make the combat tracker popout's default position configurable
 - Refine the "Hide UI Elements" list to remove extraneous options
 
-## 🔧 Configuration
+## Configuration
 
 All options are found in the **module settings**. Make sure to:
 1. Assign the **Viewer User** in settings
 2. Enable/disable the UI elements to hide
 3. Adjust sidebar and camera settings to your stream layout
 
-## 📦 Installation
+## Installation
 
 Use the following manifest URL in Foundry VTT’s **Module Installation** menu:
 
