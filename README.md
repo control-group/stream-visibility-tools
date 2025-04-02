@@ -60,7 +60,7 @@ All options are found in the **module settings**. Make sure to:
 
 ## Installation
 
-Use the following manifest URL in Foundry VTT’s **Module Installation** menu:
+Use the following manifest URL in Foundry VTT’s **Module Installation** menu: https://raw.githubusercontent.com/control-group/stream-visibility-tools/main/module.json
 
 ## Contributing
 
