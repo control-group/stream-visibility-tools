@@ -1,0 +1,35 @@
+<form>
+    <div class="form-header">
+        <h2>{{section.title}}</h2>
+        <p class="notes">{{section.description}}</p>
+    </div>
+    
+    <div class="form-group">
+        {{#each section.settings as |setting|}}
+        <div class="form-group">
+            <label>{{setting.name}}</label>
+            <div class="form-fields">
+                {{#if (eq setting.type "Boolean")}}
+                <input type="checkbox" name="{{setting.key}}" data-dtype="Boolean" {{#if setting.value}}checked{{/if}}>
+                {{else if (eq setting.type "Number")}}
+                <input type="number" name="{{setting.key}}" value="{{setting.value}}" data-dtype="Number"
+                    {{#if setting.range}}min="{{setting.range.min}}" max="{{setting.range.max}}" step="{{setting.range.step}}"{{/if}}>
+                {{else if (eq setting.type "String")}}
+                <input type="text" name="{{setting.key}}" value="{{setting.value}}" data-dtype="String">
+                {{else if (eq setting.type "Select")}}
+                <select name="{{setting.key}}" data-dtype="String">
+                    {{#each setting.choices as |choice key|}}
+                    <option value="{{key}}" {{#if (eq ../setting.value key)}}selected{{/if}}>{{choice}}</option>
+                    {{/each}}
+                </select>
+                {{/if}}
+            </div>
+            <p class="notes">{{setting.hint}}</p>
+        </div>
+        {{/each}}
+    </div>
+    
+    <button type="submit" name="submit">
+        <i class="fas fa-save"></i> Save Changes
+    </button>
+</form>

@@ -1,0 +1,86 @@
+/* styles/settings.css */
+
+/* Section Headers */
+.settings-section-header {
+    margin: 1.5em 0 0.5em 0;
+    padding-bottom: 0.5em;
+    border-bottom: 1px solid #782e22;
+    color: #782e22;
+    font-weight: bold;
+    font-size: 1.2em;
+  }
+  
+  .settings-section-header i {
+    margin-right: 10px;
+  }
+  
+  /* First section header should have no top margin */
+  .settings-section-header:first-of-type {
+    margin-top: 0;
+  }
+  
+  /* Setting Groups */
+  .stream-visibility-settings .form-group {
+    margin: 0.5em 0;
+    padding: 0.5em;
+    border-radius: 5px;
+  }
+  
+  .stream-visibility-settings .form-group:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+  }
+  
+  /* Setting Labels */
+  .stream-visibility-settings label {
+    font-weight: bold;
+  }
+  
+  /* Setting Descriptions */
+  .stream-visibility-settings .notes {
+    color: #666;
+    font-style: italic;
+    margin-top: 0.2em;
+  }
+  
+  /* Number Inputs */
+  .stream-visibility-settings input[type="number"] {
+    width: 6em;
+  }
+  
+  /* Select Inputs */
+  .stream-visibility-settings select {
+    min-width: 12em;
+  }
+  
+  /* Sub-section styling */
+  .stream-visibility-subsection {
+    margin-left: 1.5em;
+    padding-left: 1em;
+    border-left: 3px solid rgba(120, 46, 34, 0.2);
+  }
+  
+  .stream-visibility-subsection-header {
+    font-weight: bold;
+    color: #555;
+    margin: 0.8em 0 0.3em 0;
+  }
+  
+  /* Highlight the target user setting as it's the most important */
+  .stream-visibility-target-user {
+    background-color: rgba(120, 46, 34, 0.1);
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid rgba(120, 46, 34, 0.2);
+  }
+  
+  /* Responsive layout for smaller screens */
+  @media (max-width: 768px) {
+    .stream-visibility-settings .form-fields {
+      flex-direction: column;
+    }
+    
+    .stream-visibility-settings input[type="number"],
+    .stream-visibility-settings select {
+      width: 100%;
+    }
+  }

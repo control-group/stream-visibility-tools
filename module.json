@@ -2,7 +2,7 @@
   "name": "stream-visibility-tools",
   "title": "Stream Visibility Tools",
   "description": "Toggle Foundry UI elements for cleaner OBS streams.",
-  "version": "0.5.3",
+  "version": "0.6.0",
   "author": "Control Group",
   "esmodules": [
      "scripts/module.js"
@@ -17,6 +17,7 @@
   "download": "https://github.com/control-group/stream-visibility-tools/archive/refs/heads/main.zip",
   "flags": {},
   "styles": [
-    "styles/status-tracker.css"
+    "styles/status-tracker.css",
+    "styles/settings.css"
   ]
 }
