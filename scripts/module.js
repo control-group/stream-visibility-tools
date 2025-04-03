@@ -5,7 +5,7 @@ import { initializeCameraControl } from './camera-control.js';
 import { initializeAutoClose } from './auto-close.js';
 import { initializeStatusTracker } from './status-tracker/tracker-ui.js';
 
-console.log(`Stream Visibility Tools | Loading version ${game.modules.get('stream-visibility-tools').version}`);
+console.log(`Stream Visibility Tools | Loading version ${game.modules.getname('stream-visibility-tools').version}`);
 
 // Initialize module
 Hooks.once('init', () => {
