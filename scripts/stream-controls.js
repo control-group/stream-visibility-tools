@@ -231,6 +231,9 @@ Hooks.once("ready", () => {
   
   // Initialize the status tracker
   const statusTracker = initializeStatusTracker();
+
+  // Add debug tools for finding attributes
+  inspectActorData();
   
   // Store it on the game object for access elsewhere if needed
   game.streamVisibilityTools = game.streamVisibilityTools || {};
@@ -698,6 +701,65 @@ function initializeStatusTracker() {
   };
 }
 
+// Add this after the initializeStatusTracker function
+function inspectActorData() {
+  // Create a macro or console function to inspect actor data
+  Hooks.once('ready', () => {
+    // Add a global helper function
+    window.inspectActor = (actorId) => {
+      const actor = game.actors.get(actorId);
+      if (!actor) {
+        console.error("Actor not found with ID:", actorId);
+        return;
+      }
+      
+      console.log("Actor:", actor.name);
+      console.log("System Data:", actor.system);
+      
+      // Create a flattened view of paths and values
+      const paths = [];
+      const flattenObject = (obj, path = '') => {
+        for (let key in obj) {
+          if (obj[key] !== null && typeof obj[key] === 'object' && !Array.isArray(obj[key])) {
+            flattenObject(obj[key], path + key + '.');
+          } else {
+            paths.push({
+              path: path + key,
+              value: obj[key]
+            });
+          }
+        }
+      };
+      
+      flattenObject(actor.system);
+      
+      // Log possible attribute paths
+      console.log("Possible attribute paths:");
+      paths.filter(p => typeof p.value === 'number').forEach(p => {
+        console.log(`system.${p.path} = ${p.value}`);
+      });
+      
+      return paths;
+    };
+    
+    // Create a convenience macro if macros are available
+    if (game.macros && game.user.isGM) {
+      const macroName = "Inspect Selected Actor";
+      const command = "const selected = canvas.tokens.controlled[0];\nif (selected) {\n  window.inspectActor(selected.actor.id);\n} else {\n  ui.notifications.warn('Please select a token first');\n}";
+      
+      const existingMacro = game.macros.find(m => m.name === macroName);
+      if (!existingMacro) {
+        Macro.create({
+          name: macroName,
+          type: "script",
+          command: command,
+          img: "icons/svg/magnifying-glass.svg"
+        });
+        console.log("Stream Visibility Tools | Created actor inspection macro");
+      }
+    }
+  });
+}
 
 // Function to handle automatic closing of pop-up windows
 function handleAutoClose(app, html, data) {

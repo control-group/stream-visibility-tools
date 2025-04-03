@@ -18,8 +18,5 @@
   "flags": {},
   "styles": [
     "styles/status-tracker.css"
-  ],
-  "esmodules": [
-    "stream-controls.js"
   ]
 }
