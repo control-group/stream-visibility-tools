@@ -189,6 +189,46 @@ Hooks.once("init", () => {
     }
   });
 
+  game.settings.register("stream-visibility-tools", "statusTrackerTopPadding", {
+    name: "Status Tracker Top Padding (px)",
+    hint: "Distance from the top edge when in a top position",
+    scope: "world",
+    config: true,
+    default: 10,
+    type: Number,
+    onChange: () => applyVisibilitySettings()
+  });
+  
+  game.settings.register("stream-visibility-tools", "statusTrackerRightPadding", {
+    name: "Status Tracker Right Padding (px)",
+    hint: "Distance from the right edge when in a right position",
+    scope: "world",
+    config: true,
+    default: 10,
+    type: Number,
+    onChange: () => applyVisibilitySettings()
+  });
+  
+  game.settings.register("stream-visibility-tools", "statusTrackerBottomPadding", {
+    name: "Status Tracker Bottom Padding (px)",
+    hint: "Distance from the bottom edge when in a bottom position",
+    scope: "world",
+    config: true,
+    default: 10,
+    type: Number,
+    onChange: () => applyVisibilitySettings()
+  });
+  
+  game.settings.register("stream-visibility-tools", "statusTrackerLeftPadding", {
+    name: "Status Tracker Left Padding (px)",
+    hint: "Distance from the left edge when in a left position",
+    scope: "world",
+    config: true,
+    default: 10,
+    type: Number,
+    onChange: () => applyVisibilitySettings()
+  });
+
   game.settings.register("stream-visibility-tools", "statusTrackerAttributes", {
     name: "Status Tracker Attributes",
     hint: "Comma-separated list of attributes to track (e.g. 'attributes.hp.value,attributes.sanity.value')",
@@ -210,6 +250,8 @@ Hooks.once("init", () => {
 
 // Register target user setting and initialize features when ready
 Hooks.once("ready", () => {
+  console.log("Stream Visibility Tools | Ready hook fired");
+
   const userChoices = {};
   for (let user of game.users.contents) {
     userChoices[user.id] = `${user.name} (${user.id})`;
@@ -226,15 +268,19 @@ Hooks.once("ready", () => {
     onChange: () => applyVisibilitySettings()
   });
 
+  
+
   applyVisibilitySettings();
   initializeStreamCameraControl();
   
   // Initialize the status tracker
   const statusTracker = initializeStatusTracker();
 
+  /*
   // Add debug tools for finding attributes
   inspectActorData();
-  
+  --*/
+
   // Store it on the game object for access elsewhere if needed
   game.streamVisibilityTools = game.streamVisibilityTools || {};
   game.streamVisibilityTools.statusTracker = statusTracker;
@@ -537,6 +583,28 @@ class PCStatusTracker extends Application {
     const pcTokens = canvas.tokens.placeables.filter(t => {
       return t.actor?.type === "character" && t.visible;
     });
+
+      // Debug information for first token
+    if (pcTokens.length > 0) {
+      const firstActor = pcTokens[0].actor;
+      console.log("Debug - First actor:", firstActor.name);
+      console.log("Debug - Actor data:", firstActor.system || firstActor.data.data);
+      
+      // Dump all properties that have numeric values
+      const numericProps = [];
+      const findNumericProps = (obj, path = '') => {
+        for (let key in obj) {
+          if (obj[key] !== null && typeof obj[key] === 'object') {
+            findNumericProps(obj[key], path + key + '.');
+          } else if (typeof obj[key] === 'number') {
+            numericProps.push(`${path}${key}: ${obj[key]}`);
+          }
+        }
+      };
+      
+      findNumericProps(firstActor.system || firstActor.data.data);
+      console.log("Numeric properties:", numericProps);
+    }
     
     // Get attribute paths to display
     const attributePaths = game.settings.get("stream-visibility-tools", "statusTrackerAttributes").split(",");
@@ -607,7 +675,12 @@ class PCStatusTracker extends Application {
     
     const position = game.settings.get("stream-visibility-tools", "statusTrackerPosition");
     const [vPos, hPos] = position.split('-');
-    const padding = 10;
+    
+    // Get padding settings
+    const topPadding = game.settings.get("stream-visibility-tools", "statusTrackerTopPadding");
+    const rightPadding = game.settings.get("stream-visibility-tools", "statusTrackerRightPadding");
+    const bottomPadding = game.settings.get("stream-visibility-tools", "statusTrackerBottomPadding");
+    const leftPadding = game.settings.get("stream-visibility-tools", "statusTrackerLeftPadding");
     
     const windowWidth = window.innerWidth;
     const windowHeight = window.innerHeight;
@@ -615,15 +688,15 @@ class PCStatusTracker extends Application {
     let left, top;
     
     if (hPos === "left") {
-      left = padding;
+      left = leftPadding;
     } else {
-      left = windowWidth - this.element[0].offsetWidth - padding;
+      left = windowWidth - this.element[0].offsetWidth - rightPadding;
     }
     
     if (vPos === "top") {
-      top = padding;
+      top = topPadding;
     } else {
-      top = windowHeight - this.element[0].offsetHeight - padding;
+      top = windowHeight - this.element[0].offsetHeight - bottomPadding;
     }
     
     return this.element.css({
@@ -683,6 +756,20 @@ function initializeStatusTracker() {
   // Handle visibility changes
   game.settings.settings.get("stream-visibility-tools.enableStatusTracker").onChange = setupTracker;
   game.settings.settings.get("stream-visibility-tools.targetUser").onChange = setupTracker;
+
+  // Handle padding changes
+  game.settings.settings.get("stream-visibility-tools.statusTrackerTopPadding").onChange = () => {
+    if (pcTracker && pcTracker.rendered) pcTracker.setPosition();
+  };
+  game.settings.settings.get("stream-visibility-tools.statusTrackerRightPadding").onChange = () => {
+    if (pcTracker && pcTracker.rendered) pcTracker.setPosition();
+  };
+  game.settings.settings.get("stream-visibility-tools.statusTrackerBottomPadding").onChange = () => {
+    if (pcTracker && pcTracker.rendered) pcTracker.setPosition();
+  };
+  game.settings.settings.get("stream-visibility-tools.statusTrackerLeftPadding").onChange = () => {
+    if (pcTracker && pcTracker.rendered) pcTracker.setPosition();
+  };
   
   // Initialize on ready
   setupTracker();
@@ -701,6 +788,7 @@ function initializeStatusTracker() {
   };
 }
 
+/*
 // Add this after the initializeStatusTracker function
 function inspectActorData() {
   // Create a macro or console function to inspect actor data
@@ -760,6 +848,7 @@ function inspectActorData() {
     }
   });
 }
+--*/
 
 // Function to handle automatic closing of pop-up windows
 function handleAutoClose(app, html, data) {
