@@ -4,6 +4,11 @@ import { isTargetViewer } from './settings.js';
 export function initializeAutoClose() {
   console.log("Stream Visibility Tools | Initializing auto-close functionality");
   
+  // Register hooks
+  setupAutoCloseHooks();
+}
+
+function setupAutoCloseHooks() {
   // Function to handle automatic closing of pop-up windows
   const handleAutoClose = (app, html, data) => {
     if (!isTargetViewer()) return;

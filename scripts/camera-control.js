@@ -1,6 +1,4 @@
 // scripts/camera-control.js
-import { isTargetViewer, getTargetUser } from './settings.js';
-
 export function initializeCameraControl() {
   console.log("Stream Visibility Tools | Camera control hooks initialized");
 
@@ -10,6 +8,11 @@ export function initializeCameraControl() {
   console.log(`Stream Visibility Tools | Target user setting: "${getTargetUser()}"`);
   console.log(`Stream Visibility Tools | Is target viewer: ${isTargetViewer()}`);
 
+  // Set up hooks for camera control
+  setupCameraHooks();
+}
+
+function setupCameraHooks() {
   // Default scene positioning
   Hooks.on("canvasReady", () => {
     console.log(`Stream Visibility Tools | Canvas ready event for ${game.user.name}`);
@@ -27,7 +30,7 @@ export function initializeCameraControl() {
       const zoom = game.settings.get("stream-visibility-tools", "defaultZoom") || sceneInitial.scale;
       canvas.animatePan({ x: sceneInitial.x, y: sceneInitial.y, scale: zoom });
     }
-  });
+});
 
   // Combat Tracker popout functionality
   Hooks.on("createCombat", () => {

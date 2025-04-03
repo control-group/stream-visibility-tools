@@ -8,14 +8,16 @@ export function initializeUIController() {
   // Set up hooks
   Hooks.on("renderSidebarTab", () => setTimeout(() => applyVisibilitySettings(), 100));
   Hooks.on("renderSettings", () => setTimeout(() => applyVisibilitySettings(), 100));
+  
+  // Listen for settings changes
+  Hooks.on("updateSetting", (setting) => {
+    if (setting.key.startsWith("stream-visibility-tools")) {
+      setTimeout(() => applyVisibilitySettings(), 100);
+    }
+  });
+  
   Hooks.once("canvasReady", () => {
-    const tryApply = () => {
-      if (!game.settings.settings.has("stream-visibility-tools.targetUser")) {
-        return setTimeout(tryApply, 100);
-      }
-      applyVisibilitySettings();
-    };
-    tryApply();
+    setTimeout(() => applyVisibilitySettings(), 100);
   });
   
   // Initial application

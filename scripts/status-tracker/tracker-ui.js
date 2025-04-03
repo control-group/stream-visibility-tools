@@ -10,26 +10,35 @@ export function initializeStatusTracker() {
   
   // This function checks if the current user should display the tracker
   const shouldShowTracker = () => {
-    if (!game.settings.get("stream-visibility-tools", "enableStatusTracker")) return false;
-    return isTargetViewer();
+    try {
+      if (!game.settings.get("stream-visibility-tools", "enableStatusTracker")) return false;
+      return isTargetViewer();
+    } catch (e) {
+      console.error("Stream Visibility Tools | Error in shouldShowTracker:", e);
+      return false;
+    }
   };
   
   // Create or refresh the tracker
   const setupTracker = () => {
-    if (!shouldShowTracker()) {
-      if (pcTracker && pcTracker.rendered) {
-        pcTracker.close();
+    try {
+      if (!shouldShowTracker()) {
+        if (pcTracker && pcTracker.rendered) {
+          pcTracker.close();
+        }
+        return;
       }
-      return;
-    }
-    
-    if (!pcTracker) {
-      pcTracker = new PCStatusTracker();
-      pcTracker.render(true);
-    } else if (!pcTracker.rendered) {
-      pcTracker.render(true);
-    } else {
-      pcTracker.refresh();
+      
+      if (!pcTracker) {
+        pcTracker = new PCStatusTracker();
+        pcTracker.render(true);
+      } else if (!pcTracker.rendered) {
+        pcTracker.render(true);
+      } else {
+        pcTracker.refresh();
+      }
+    } catch (e) {
+      console.error("Stream Visibility Tools | Error in setupTracker:", e);
     }
   };
   
@@ -47,23 +56,12 @@ export function initializeStatusTracker() {
     if (pcTracker && pcTracker.rendered) pcTracker.refresh();
   });
   
-  // Handle visibility changes
-  game.settings.settings.get("stream-visibility-tools.enableStatusTracker").onChange = setupTracker;
-  game.settings.settings.get("stream-visibility-tools.targetUser").onChange = setupTracker;
-
-  // Handle padding changes
-  game.settings.settings.get("stream-visibility-tools.statusTrackerTopPadding").onChange = () => {
-    if (pcTracker && pcTracker.rendered) pcTracker.setPosition();
-  };
-  game.settings.settings.get("stream-visibility-tools.statusTrackerRightPadding").onChange = () => {
-    if (pcTracker && pcTracker.rendered) pcTracker.setPosition();
-  };
-  game.settings.settings.get("stream-visibility-tools.statusTrackerBottomPadding").onChange = () => {
-    if (pcTracker && pcTracker.rendered) pcTracker.setPosition();
-  };
-  game.settings.settings.get("stream-visibility-tools.statusTrackerLeftPadding").onChange = () => {
-    if (pcTracker && pcTracker.rendered) pcTracker.setPosition();
-  };
+  // Register for setting changes
+  Hooks.on("updateSetting", (setting) => {
+    if (setting.key.startsWith("stream-visibility-tools")) {
+      setupTracker();
+    }
+  });
   
   // Initialize on ready
   setupTracker();

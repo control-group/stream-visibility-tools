@@ -90,13 +90,15 @@ export function registerSettings() {
         default: 5000,
       });
     
+      // In settings.js, when registering settings that need callbacks:
       game.settings.register("stream-visibility-tools", "enableStatusTracker", {
         name: "Enable PC Status Tracker",
         hint: "Shows a panel with PC tokens and status bars",
         scope: "world",
         config: true,
         default: false,
-        type: Boolean
+        type: Boolean,
+        onChange: value => setupTracker() // This is the proper way to register an onChange handler
       });
     
       game.settings.register("stream-visibility-tools", "statusTrackerPosition", {
