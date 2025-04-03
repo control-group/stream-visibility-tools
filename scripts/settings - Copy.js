@@ -180,6 +180,12 @@ export function registerSettings() {
         default: "red,blue,green",
         type: String
       });
+    
+     // Target user setting
+    const userChoices = {};
+    for (let user of game.users.contents) {
+      userChoices[user.id] = `${user.name} (${user.id})`;
+    }
   
     game.settings.register("stream-visibility-tools", "targetUser", {
       name: "Target User for Stream Visibility",
@@ -209,7 +215,9 @@ export function registerSettings() {
     }
   });
 }
-    
+  
+  
+  
   // Helper functions
   export function getTargetUser() {
     try {

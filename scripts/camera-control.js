@@ -1,15 +1,25 @@
 // scripts/camera-control.js
+import { isTargetViewer, getTargetUser } from './settings.js';
+
 export function initializeCameraControl() {
-  console.log("Stream Visibility Tools | Camera control hooks initialized");
+  try {
+    console.log("Stream Visibility Tools | Camera control hooks initialized");
 
-  // Log initialization status with detailed user information
-  console.log(`Stream Visibility Tools | Camera control initialized for user: ${game.user.name} (ID: ${game.user.id})`);
-  console.log(`Stream Visibility Tools | User role: ${game.user.role}`);
-  console.log(`Stream Visibility Tools | Target user setting: "${getTargetUser()}"`);
-  console.log(`Stream Visibility Tools | Is target viewer: ${isTargetViewer()}`);
+    // Only attempt to access these values if the game is ready
+    if (game.user) {
+      console.log(`Stream Visibility Tools | Camera control initialized for user: ${game.user.name} (ID: ${game.user.id})`);
+      console.log(`Stream Visibility Tools | User role: ${game.user.role}`);
+      console.log(`Stream Visibility Tools | Target user setting: "${getTargetUser()}"`);
+      console.log(`Stream Visibility Tools | Is target viewer: ${isTargetViewer()}`);
+    } else {
+      console.log("Stream Visibility Tools | Game user not yet available");
+    }
 
-  // Set up hooks for camera control
-  setupCameraHooks();
+    // Set up hooks for camera control
+    setupCameraHooks();
+  } catch (e) {
+    console.error("Stream Visibility Tools | Error in initializeCameraControl:", e);
+  }
 }
 
 function setupCameraHooks() {
