@@ -1,6 +1,5 @@
 // scripts/module.js
 import { registerSettings } from './settings.js';
-import { injectSettingsSections } from './settings-helpers.js';
 import { initializeUIController } from './ui-controller.js';
 import { initializeCameraControl } from './camera-control.js';
 import { initializeAutoClose } from './auto-close.js';
@@ -36,10 +35,4 @@ Hooks.once('ready', async () => {
   } catch (e) {
     console.error("Stream Visibility Tools | Error during module initialization:", e);
   }
-});
-
-// Add hook for rendering settings to organize our settings UI
-Hooks.on('renderSettingsConfig', (app, html, data) => {
-  // Give the DOM time to update
-  setTimeout(() => injectSettingsSections(), 100);
 });

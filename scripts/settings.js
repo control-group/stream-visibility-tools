@@ -1,138 +1,178 @@
 // scripts/settings.js
-import { registerSettingsHelpers } from './settings-helpers.js';
 
 // Main function to register all settings - called from module.js
 export function registerSettings() {
     console.log("Stream Visibility Tools | Registering settings");
     
-    // Register helper functions first
-    registerSettingsHelpers();
-    
     // =====================================================
     // TARGET USER - Top section as everything depends on this
     // =====================================================
-    game.settings.registerMenu("stream-visibility-tools", "targetUserSection", {
-        name: "Target User Configuration",
-        label: "Target User",
-        icon: "fas fa-user-cog",
-        type: SettingsSection,
-        restricted: true
-    });
-    
     registerTargetUserSettings();
 
     // =====================================================
     // CAMERA CONTROL
     // =====================================================
-    game.settings.registerMenu("stream-visibility-tools", "cameraControlSection", {
-        name: "Camera Control Settings",
-        label: "Camera Control",
-        icon: "fas fa-video",
-        type: SettingsSection,
-        restricted: true
-    });
-    
     registerCameraSettings();
     
     // =====================================================
     // UI VISIBILITY
     // =====================================================
-    game.settings.registerMenu("stream-visibility-tools", "uiVisibilitySection", {
-        name: "UI Visibility Settings",
-        label: "UI Visibility",
-        icon: "fas fa-eye-slash",
-        type: SettingsSection,
-        restricted: true
-    });
-    
     registerUIVisibilitySettings();
     
     // =====================================================
     // SIDEBAR SETTINGS
     // =====================================================
-    game.settings.registerMenu("stream-visibility-tools", "sidebarSection", {
-        name: "Sidebar Configuration",
-        label: "Sidebar Settings",
-        icon: "fas fa-columns",
-        type: SettingsSection,
-        restricted: true
-    });
-    
     registerSidebarSettings();
     
     // =====================================================
     // PLAYER LIST
     // =====================================================
-    game.settings.registerMenu("stream-visibility-tools", "playerListSection", {
-        name: "Player List Configuration",
-        label: "Player List",
-        icon: "fas fa-users",
-        type: SettingsSection,
-        restricted: true
-    });
-    
     registerPlayerListSettings();
     
     // =====================================================
     // PC STATUS TRACKER
     // =====================================================
-    game.settings.registerMenu("stream-visibility-tools", "statusTrackerSection", {
-        name: "PC Status Tracker Configuration",
-        label: "PC Status Tracker",
-        icon: "fas fa-heartbeat",
-        type: SettingsSection,
-        restricted: true
-    });
-    
     registerStatusTrackerSettings();
     
     // =====================================================
     // MISCELLANEOUS
     // =====================================================
-    game.settings.registerMenu("stream-visibility-tools", "miscSection", {
-        name: "Miscellaneous Settings",
-        label: "Miscellaneous",
-        icon: "fas fa-cogs",
-        type: SettingsSection,
-        restricted: true
-    });
-    
     registerMiscSettings();
+    
+    // Set up the settings sections renderer
+    setupSettingsSections();
 }
 
-// Define a custom class for SettingsSection
-class SettingsSection extends FormApplication {
-    constructor(object, options) {
-        super(object, options);
-        this.section = options.section;
-    }
+// Setup the hook for settings sections
+function setupSettingsSections() {
+    Hooks.on('renderSettingsConfig', (app, html, data) => {
+        // Give the DOM time to update
+        setTimeout(() => injectSettingsSections(html), 100);
+    });
+}
+
+/**
+ * Create a settings section header HTML element
+ * @param {string} title - The title of the section
+ * @param {string} icon - FontAwesome icon class
+ * @returns {HTMLElement} - The header element
+ */
+function createSettingsSectionHeader(title, icon = "fas fa-cog") {
+    const header = document.createElement("h3");
+    header.classList.add("settings-section-header");
     
-    static get defaultOptions() {
-        return mergeObject(super.defaultOptions, {
-            id: "stream-visibility-section",
-            title: "Stream Visibility Settings",
-            template: "modules/stream-visibility-tools/templates/settings-section.html",
-            width: 600,
-            height: "auto",
-            classes: ["stream-visibility-settings"],
-            tabs: [
-                { navSelector: ".tabs", contentSelector: ".content", initial: "general" }
+    const iconElement = document.createElement("i");
+    iconElement.className = icon;
+    iconElement.style.marginRight = "10px";
+    
+    const titleText = document.createTextNode(title);
+    
+    header.appendChild(iconElement);
+    header.appendChild(titleText);
+    header.style.borderBottom = "1px solid #782e22";
+    header.style.margin = "1em 0 0.5em 0";
+    header.style.paddingBottom = "0.5em";
+    header.style.color = "#782e22";
+    
+    return header;
+}
+
+/**
+ * Inserts section headers into the settings form
+ * This function should be called when the settings tab is rendered
+ */
+function injectSettingsSections(html) {
+    // Wait for the settings form to be available
+    const settingsForm = html.querySelector('section[data-tab="modules"] .settings-list');
+    if (!settingsForm) return;
+    
+    // Define sections and their settings
+    const sections = [
+        {
+            id: 'target-user',
+            title: 'Target User Configuration',
+            icon: 'fas fa-user-cog',
+            settings: ['targetUser']
+        },
+        {
+            id: 'camera-control',
+            title: 'Camera Control Settings',
+            icon: 'fas fa-video',
+            settings: ['zoomInLevel', 'maxZoomOut', 'defaultZoom']
+        },
+        {
+            id: 'ui-visibility',
+            title: 'UI Visibility Settings',
+            icon: 'fas fa-eye-slash',
+            settings: ['navBar', 'logo', 'sceneControls', 'macroHotbar']
+        },
+        {
+            id: 'sidebar',
+            title: 'Sidebar Settings',
+            icon: 'fas fa-columns',
+            settings: ['sidebarTabs', 'chatLog', 'combatTracker', 'minimalSidebar', 'sidebarHeight']
+        },
+        {
+            id: 'player-list',
+            title: 'Player List Settings',
+            icon: 'fas fa-users',
+            settings: ['players', 'playerOffsetTop']
+        },
+        {
+            id: 'status-tracker',
+            title: 'PC Status Tracker',
+            icon: 'fas fa-heartbeat',
+            settings: [
+                'enableStatusTracker', 'statusTrackerPosition', 
+                'statusTrackerTopPadding', 'statusTrackerRightPadding', 
+                'statusTrackerBottomPadding', 'statusTrackerLeftPadding',
+                'statusTrackerAttributes', 'statusBarColors'
             ]
-        });
-    }
-    
-    getData() {
-        // Would get settings for this specific section
-        return {
-            section: this.section
-        };
-    }
-    
-    _updateObject(event, formData) {
-        // Save form data
-        for (let [key, value] of Object.entries(formData)) {
-            game.settings.set("stream-visibility-tools", key, value);
+        },
+        {
+            id: 'misc',
+            title: 'Miscellaneous Settings',
+            icon: 'fas fa-cogs',
+            settings: ['dwellTime']
         }
+    ];
+    
+    // Get all stream-visibility-tools settings
+    const allSettings = Array.from(settingsForm.querySelectorAll('.form-group'))
+        .filter(el => el.dataset.moduleId === 'stream-visibility-tools');
+    
+    // Create a document fragment to build our reorganized settings
+    const fragment = document.createDocumentFragment();
+    
+    // Process each section
+    sections.forEach(section => {
+        // Add section header
+        const header = createSettingsSectionHeader(section.title, section.icon);
+        fragment.appendChild(header);
+        
+        // Find settings for this section
+        section.settings.forEach(settingKey => {
+            const settingElement = allSettings.find(el => {
+                const name = el.querySelector('input, select')?.name;
+                return name === `stream-visibility-tools.${settingKey}`;
+            });
+            
+            if (settingElement) {
+                fragment.appendChild(settingElement);
+            }
+        });
+    });
+    
+    // Replace the original settings with our organized version
+    if (allSettings.length > 0) {
+        const firstSetting = allSettings[0];
+        const parent = firstSetting.parentNode;
+        
+        // Remove all original settings
+        allSettings.forEach(el => el.remove());
+        
+        // Insert the organized settings
+        parent.appendChild(fragment);
     }
 }
 
@@ -495,3 +535,10 @@ export function isTargetViewer() {
         return false;
     }
 }
+
+// Global function to set up the tracker
+window.setupTracker = () => {
+    if (game.streamVisibilityTools?.statusTracker) {
+        game.streamVisibilityTools.statusTracker.refresh();
+    }
+};
