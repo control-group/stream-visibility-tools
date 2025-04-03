@@ -1,0 +1,22 @@
+<div class="pc-status-container">
+    {{#each tokens as |token|}}
+    <div class="pc-status-item" data-token-id="{{token.id}}">
+      <div class="pc-token-image">
+        <img src="{{token.img}}" alt="{{token.name}}">
+      </div>
+      <div class="pc-status-info">
+        <div class="pc-token-name">{{token.name}}</div>
+        <div class="pc-status-bars">
+          {{#each token.stats as |stat index|}}
+          <div class="pc-status-bar">
+            <div class="pc-status-bar-fill" style="width: {{stat.pct}}%; background-color: {{stat.color}}"></div>
+            <div class="pc-status-bar-text">{{stat.value}}/{{stat.max}}</div>
+          </div>
+          {{/each}}
+        </div>
+      </div>
+    </div>
+    {{else}}
+    <div class="pc-status-empty">No player characters visible</div>
+    {{/each}}
+  </div>

@@ -164,6 +164,48 @@ Hooks.once("init", () => {
     type: Number,
     default: 5000,
   });
+
+  game.settings.register("stream-visibility-tools", "enableStatusTracker", {
+    name: "Enable PC Status Tracker",
+    hint: "Shows a panel with PC tokens and status bars",
+    scope: "world",
+    config: true,
+    default: false,
+    type: Boolean
+  });
+
+  game.settings.register("stream-visibility-tools", "statusTrackerPosition", {
+    name: "Status Tracker Position",
+    hint: "Where to display the status tracker panel",
+    scope: "world",
+    config: true,
+    default: "top-right",
+    type: String,
+    choices: {
+      "top-left": "Top Left",
+      "top-right": "Top Right", 
+      "bottom-left": "Bottom Left",
+      "bottom-right": "Bottom Right"
+    }
+  });
+
+  game.settings.register("stream-visibility-tools", "statusTrackerAttributes", {
+    name: "Status Tracker Attributes",
+    hint: "Comma-separated list of attributes to track (e.g. 'attributes.hp.value,attributes.sanity.value')",
+    scope: "world",
+    config: true,
+    default: "attributes.hp.value",
+    type: String
+  });
+
+  game.settings.register("stream-visibility-tools", "statusBarColors", {
+    name: "Status Bar Colors",
+    hint: "Comma-separated list of colors for status bars (e.g. 'red,blue,green')",
+    scope: "world",
+    config: true,
+    default: "red,blue,green",
+    type: String
+  });
 });
 
 // Register target user setting and initialize features when ready
@@ -186,6 +228,13 @@ Hooks.once("ready", () => {
 
   applyVisibilitySettings();
   initializeStreamCameraControl();
+  
+  // Initialize the status tracker
+  const statusTracker = initializeStatusTracker();
+  
+  // Store it on the game object for access elsewhere if needed
+  game.streamVisibilityTools = game.streamVisibilityTools || {};
+  game.streamVisibilityTools.statusTracker = statusTracker;
   
   // Additional application passes
   // First pass already done above
@@ -459,6 +508,197 @@ function initializeStreamCameraControl() {
   });
 }
 
+/**
+ * PC Status Tracker - Shows player character tokens with status bars
+ */
+class PCStatusTracker extends Application {
+  static get defaultOptions() {
+    return mergeObject(super.defaultOptions, {
+      id: "pc-status-tracker",
+      template: "modules/stream-visibility-tools/templates/status-tracker.html",
+      classes: ["pc-status-tracker"],
+      width: 250,
+      height: "auto",
+      popOut: true,
+      minimizable: false,
+      resizable: false,
+      title: "PC Status"
+    });
+  }
+
+  /**
+   * Get data for the template
+   */
+  getData(options={}) {
+    // Get visible PC tokens from the canvas
+    const pcTokens = canvas.tokens.placeables.filter(t => {
+      return t.actor?.type === "character" && t.visible;
+    });
+    
+    // Get attribute paths to display
+    const attributePaths = game.settings.get("stream-visibility-tools", "statusTrackerAttributes").split(",");
+    const barColors = game.settings.get("stream-visibility-tools", "statusBarColors").split(",");
+    
+    // Process tokens to extract required data
+    const tokenData = pcTokens.map(token => {
+      const actor = token.actor;
+      
+      // Extract values for each attribute path
+      const stats = attributePaths.map((path, index) => {
+        const parts = path.trim().split('.');
+        let obj = actor.system || actor.data.data; // Handle different versions of Foundry
+        let max = null;
+        
+        // Navigate the object path to get the value
+        for (let i = 0; i < parts.length; i++) {
+          if (!obj) break;
+          obj = obj[parts[i]];
+        }
+        
+        // Try to find a max value
+        const maxPath = path.replace(/\.value$/, '.max');
+        const maxParts = maxPath.split('.');
+        let maxObj = actor.system || actor.data.data;
+        for (let i = 0; i < maxParts.length; i++) {
+          if (!maxObj) break;
+          maxObj = maxObj[maxParts[i]];
+        }
+        
+        // If we have a numeric value, create a stat object
+        if (typeof obj === 'number') {
+          return {
+            value: obj,
+            max: typeof maxObj === 'number' ? maxObj : obj,
+            pct: typeof maxObj === 'number' ? (obj / maxObj * 100) : 100,
+            color: barColors[index] || 'gray'
+          };
+        }
+        return null;
+      }).filter(s => s !== null);
+      
+      return {
+        id: token.id,
+        name: token.name,
+        img: token.document.texture.src,
+        stats: stats
+      };
+    });
+    
+    return {
+      tokens: tokenData
+    };
+  }
+
+  /**
+   * Update the UI when relevant data changes
+   */
+  refresh() {
+    this.render(true);
+  }
+
+  /**
+   * Set the position based on settings
+   */
+  setPosition(options={}) {
+    if (!this.rendered) return;
+    
+    const position = game.settings.get("stream-visibility-tools", "statusTrackerPosition");
+    const [vPos, hPos] = position.split('-');
+    const padding = 10;
+    
+    const windowWidth = window.innerWidth;
+    const windowHeight = window.innerHeight;
+    
+    let left, top;
+    
+    if (hPos === "left") {
+      left = padding;
+    } else {
+      left = windowWidth - this.element[0].offsetWidth - padding;
+    }
+    
+    if (vPos === "top") {
+      top = padding;
+    } else {
+      top = windowHeight - this.element[0].offsetHeight - padding;
+    }
+    
+    return this.element.css({
+      left: left + "px",
+      top: top + "px"
+    });
+  }
+}
+
+function initializeStatusTracker() {
+  console.log("Stream Visibility Tools | Initializing PC Status Tracker");
+  
+  // Store the tracker instance
+  let pcTracker = null;
+  
+  // This function checks if the current user should display the tracker
+  const shouldShowTracker = () => {
+    if (!game.settings.get("stream-visibility-tools", "enableStatusTracker")) return false;
+    
+    const targetUser = game.settings.get("stream-visibility-tools", "targetUser");
+    return targetUser && game.user.id === targetUser;
+  };
+  
+  // Create or refresh the tracker
+  const setupTracker = () => {
+    if (!shouldShowTracker()) {
+      if (pcTracker && pcTracker.rendered) {
+        pcTracker.close();
+      }
+      return;
+    }
+    
+    if (!pcTracker) {
+      pcTracker = new PCStatusTracker();
+      pcTracker.render(true);
+    } else if (!pcTracker.rendered) {
+      pcTracker.render(true);
+    } else {
+      pcTracker.refresh();
+    }
+  };
+  
+  // Set up hooks for tracker updates
+  Hooks.on("canvasReady", setupTracker);
+  Hooks.on("updateToken", (token, changes) => {
+    if (pcTracker && pcTracker.rendered) pcTracker.refresh();
+  });
+  Hooks.on("updateActor", (actor, changes) => {
+    if (pcTracker && pcTracker.rendered) pcTracker.refresh();
+  });
+  
+  // Also refresh when combat changes
+  Hooks.on("updateCombat", () => {
+    if (pcTracker && pcTracker.rendered) pcTracker.refresh();
+  });
+  
+  // Handle visibility changes
+  game.settings.settings.get("stream-visibility-tools.enableStatusTracker").onChange = setupTracker;
+  game.settings.settings.get("stream-visibility-tools.targetUser").onChange = setupTracker;
+  
+  // Initialize on ready
+  setupTracker();
+  
+  // Handle window resize
+  window.addEventListener("resize", () => {
+    if (pcTracker && pcTracker.rendered) {
+      pcTracker.setPosition();
+    }
+  });
+  
+  return {
+    refresh: () => {
+      if (pcTracker && pcTracker.rendered) pcTracker.refresh();
+    }
+  };
+}
+
+
 // Function to handle automatic closing of pop-up windows
 function handleAutoClose(app, html, data) {
   if (!game.settings.settings.has("stream-visibility-tools.targetUser")) return;
@@ -484,3 +724,4 @@ function handleAutoClose(app, html, data) {
   // Hook into the rendering of relevant applications
 Hooks.on("renderJournalSheet", handleAutoClose);
 Hooks.on("renderActorSheet", handleAutoClose);
+

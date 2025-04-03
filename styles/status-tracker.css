@@ -1,0 +1,73 @@
+.pc-status-container {
+    padding: 5px;
+  }
+  
+  .pc-status-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 5px;
+    padding: 5px;
+  }
+  
+  .pc-token-image {
+    width: 40px;
+    height: 40px;
+    margin-right: 10px;
+  }
+  
+  .pc-token-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 1px solid #777;
+  }
+  
+  .pc-status-info {
+    flex: 1;
+  }
+  
+  .pc-token-name {
+    color: white;
+    font-weight: bold;
+    margin-bottom: 3px;
+    font-size: 0.9em;
+  }
+  
+  .pc-status-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  
+  .pc-status-bar {
+    position: relative;
+    height: 8px;
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  
+  .pc-status-bar-fill {
+    height: 100%;
+    transition: width 0.3s ease;
+  }
+  
+  .pc-status-bar-text {
+    position: absolute;
+    top: 0;
+    right: 3px;
+    font-size: 0.7em;
+    color: white;
+    text-shadow: 0 0 2px black;
+    line-height: 8px;
+  }
+  
+  .pc-status-empty {
+    color: white;
+    text-align: center;
+    padding: 10px;
+    font-style: italic;
+  }
