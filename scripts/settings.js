@@ -501,7 +501,7 @@ function registerSidebarSettings() {
         range: {
             min: 200,
             max: 1200,
-            step: 50
+            step: 1
         },
         onChange: () => window.applyVisibilitySettings()
     });
@@ -610,8 +610,8 @@ function registerStatusTrackerSettings() {
             type: Number,
             range: {
                 min: 0,
-                max: 100,
-                step: 5
+                max: 1000,
+                step: 1
             },
             onChange: () => {
                 if (game.streamVisibilityTools?.statusTracker) {

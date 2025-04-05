@@ -144,5 +144,12 @@ export class PCStatusTracker extends Application {
       top: top + "px"
     });
   }
+
+    /** @override */
+  async _render(...args) {
+    await super._render(...args);
+    // Immediately set position after rendering
+    this.setPosition();
+  }
 }
 

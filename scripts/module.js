@@ -4,9 +4,10 @@ import { initializeUIController } from './ui-controller.js';
 import { initializeCameraControl } from './camera-control.js';
 import { initializeAutoClose } from './auto-close.js';
 import { initializeStatusTracker } from './status-tracker/tracker-ui.js';
+import { initializeRangePickers } from './range-picker.js';
 
 // Don't attempt to access game.modules at the top level
-let moduleVersion = "0.6.0"; // Hardcode version for logging
+let moduleVersion = "0.6.1"; // Hardcode version for logging
 
 // Initialize module
 Hooks.once('init', async () => {
@@ -28,6 +29,7 @@ Hooks.once('ready', async () => {
     initializeUIController();
     initializeCameraControl();
     initializeAutoClose();
+    initializeRangePickers();
     
     // Store the status tracker on the game object for access elsewhere
     game.streamVisibilityTools = game.streamVisibilityTools || {};
