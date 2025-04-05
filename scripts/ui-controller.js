@@ -89,6 +89,12 @@ function applyVisibilitySettings() {
     document.querySelectorAll(".dice-tray, .dice-tray__buttons, .dice-tray__math").forEach(el => {
       el.style.display = "none";
     });
+
+    // Add class to body for CSS targeting
+    document.body.classList.add('minimal-sidebar');
+  } else {
+    // Remove class if minimal sidebar is disabled
+    document.body.classList.remove('minimal-sidebar');
   }
 
   // Apply player list and sidebar adjustments
