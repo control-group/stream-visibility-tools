@@ -255,130 +255,50 @@ function addCustomStyles(html) {
             background-color: rgba(0, 0, 0, 0.05);
         }
         
-        .selected-attributes-display {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 5px;
-            padding: 8px;
-            background: rgba(0, 0, 0, 0.05);
-            border: 1px solid #ccc;
-            border-radius: 3px;
-            min-height: 38px;
-            align-items: center;
-            flex: 1;
-        }
-
-        .attribute-tag {
-            background: #782e22;
-            color: white;
-            padding: 3px 8px;
-            border-radius: 3px;
-            font-size: 0.9em;
-            white-space: nowrap;
-        }
-
-        .no-attributes {
-            color: #999;
-            font-style: italic;
-        }
-
         .attribute-selector-btn {
             margin-left: 8px;
             white-space: nowrap;
-            flex-shrink: 0;
         }
-
-        .stream-visibility-attribute-selector .form-fields {
-            display: flex;
-            gap: 8px;
-            align-items: flex-start;
-        }
-
-        .attribute-selector-content {
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-        }
-
-        .currently-selected {
-            padding: 10px;
-            background: rgba(120, 46, 34, 0.1);
-            border: 1px solid rgba(120, 46, 34, 0.3);
-            border-radius: 4px;
-            margin-bottom: 15px;
-        }
-
-        .currently-selected h3 {
-            margin: 0 0 10px 0;
-            font-size: 1em;
-            color: #782e22;
-        }
-
-        #selected-attributes-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 5px;
-            min-height: 30px;
-        }
-
-        .selected-attr-tag {
-            background: #782e22;
-            color: white;
-            padding: 4px 10px;
-            border-radius: 3px;
-            font-size: 0.9em;
-        }
-
-        .no-selection {
-            color: #999;
-            font-style: italic;
-        }
-
+        
         .attribute-list {
-            flex: 1;
+            max-height: 400px;
             overflow-y: auto;
-            padding: 10px;
-            background: rgba(0, 0, 0, 0.02);
-            border: 1px solid #ccc;
-            border-radius: 4px;
         }
-
-        .attribute-list h3 {
-            margin: 0 0 5px 0;
-            font-size: 1em;
-        }
-
-        .attribute-list .hint {
-            font-size: 0.9em;
-            color: #666;
-            margin: 5px 0 10px 0;
-        }
-
+        
         .attributes {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 5px;
         }
-
+        
         .attribute-item {
             display: flex;
             align-items: center;
-            padding: 5px;
-            border-radius: 3px;
+            padding: 3px;
         }
-
+        
         .attribute-item:hover {
             background-color: rgba(0, 0, 0, 0.05);
         }
-
+        
         .attribute-item input {
-            margin-right: 8px;
-            cursor: pointer;
+            margin-right: 5px;
         }
-
-        .attribute-item label {
-            cursor: pointer;
-            user-select: none;
+        
+        .currently-selected {
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px solid #ddd;
+        }
+        
+        .currently-selected h3 {
+            margin: 0 0 10px 0;
+            font-size: 1em;
+        }
+        
+        #selected-attributes {
+            margin: 0;
+            padding-left: 20px;
         }
         
         .status-bar-colors {
@@ -762,27 +682,17 @@ function registerAttributeSelectorButton(html) {
         return;
     }
     
-    // Get current attributes and format them nicely
-    const currentAttrs = game.settings.get("stream-visibility-tools", "statusTrackerAttributes");
-    const attrList = currentAttrs ? currentAttrs.split(',').filter(a => a.trim()) : [];
-    const attrDisplay = attrList.length > 0
-        ? attrList.map(attr => `<span class="attribute-tag">${attr}</span>`).join('')
-        : '<span class="no-attributes">No attributes selected</span>';
-
     // Create the attribute selector UI
     const attributeSettingHtml = `
     <div class="form-group stream-visibility-attribute-selector">
         <label>Status Tracker Attributes</label>
         <div class="form-fields">
-            <div class="selected-attributes-display">
-                ${attrDisplay}
-            </div>
+            <input type="text" name="stream-visibility-tools.statusTrackerAttributes" 
+                   value="${game.settings.get("stream-visibility-tools", "statusTrackerAttributes")}" readonly>
             <button type="button" id="select-attributes-btn" class="attribute-selector-btn">
                 <i class="fas fa-list"></i> Select Attributes
             </button>
         </div>
-        <input type="hidden" name="stream-visibility-tools.statusTrackerAttributes"
-               value="${currentAttrs}">
         <p class="notes">Select which attributes to display in the PC status tracker.</p>
     </div>`;
     
@@ -881,13 +791,10 @@ class AttributeSelectorDialog extends Dialog {
                 }
             },
             default: "save",
-            width: 600,
-            height: 600,
             ...options
-        }, options);
-
-        const currentAttrs = game.settings.get("stream-visibility-tools", "statusTrackerAttributes");
-        this.selectedAttributes = currentAttrs ? currentAttrs.split(",").filter(a => a.trim()) : [];
+        });
+        
+        this.selectedAttributes = game.settings.get("stream-visibility-tools", "statusTrackerAttributes").split(",");
     }
     
     /** @override */
@@ -921,29 +828,24 @@ class AttributeSelectorDialog extends Dialog {
             
             // Create the selection UI
             const html = `
-                <div class="attribute-selector-content">
-                    <div class="currently-selected">
-                        <h3>Currently Selected Attributes:</h3>
-                        <div id="selected-attributes-list">
-                            ${this.selectedAttributes.length > 0
-                                ? this.selectedAttributes.map(attr => `<span class="selected-attr-tag">${attr}</span>`).join('')
-                                : '<span class="no-selection">No attributes selected</span>'}
-                        </div>
+                <div class="attribute-list">
+                    <p class="hint">Select attributes to display in the status tracker.</p>
+                    <div class="attributes">
+                        ${attributePaths.map(path => `
+                            <div class="attribute-item">
+                                <input type="checkbox" id="attr-${path}" 
+                                       data-path="${path}" 
+                                       ${this.selectedAttributes.includes(path) ? 'checked' : ''}>
+                                <label for="attr-${path}">${path}</label>
+                            </div>
+                        `).join('')}
                     </div>
-
-                    <div class="attribute-list">
-                        <h3>Available Attributes:</h3>
-                        <p class="hint">Check the boxes to select which attributes to display in the status tracker.</p>
-                        <div class="attributes">
-                            ${attributePaths.map(path => `
-                                <div class="attribute-item">
-                                    <input type="checkbox" id="attr-${path}"
-                                           data-path="${path}"
-                                           ${this.selectedAttributes.includes(path) ? 'checked' : ''}>
-                                    <label for="attr-${path}">${path}</label>
-                                </div>
-                            `).join('')}
-                        </div>
+                    
+                    <div class="currently-selected">
+                        <h3>Currently Selected:</h3>
+                        <ul id="selected-attributes">
+                            ${this.selectedAttributes.map(attr => `<li>${attr}</li>`).join('')}
+                        </ul>
                     </div>
                 </div>
             `;
@@ -954,18 +856,17 @@ class AttributeSelectorDialog extends Dialog {
             this.element.find('.attribute-item input[type="checkbox"]').on('change', (event) => {
                 const path = event.currentTarget.dataset.path;
                 const checked = event.currentTarget.checked;
-
+                
                 if (checked && !this.selectedAttributes.includes(path)) {
                     this.selectedAttributes.push(path);
                 } else if (!checked && this.selectedAttributes.includes(path)) {
                     this.selectedAttributes = this.selectedAttributes.filter(a => a !== path);
                 }
-
-                // Update the selected list display
-                const displayHtml = this.selectedAttributes.length > 0
-                    ? this.selectedAttributes.map(attr => `<span class="selected-attr-tag">${attr}</span>`).join('')
-                    : '<span class="no-selection">No attributes selected</span>';
-                this.element.find("#selected-attributes-list").html(displayHtml);
+                
+                // Update the selected list
+                this.element.find("#selected-attributes").html(
+                    this.selectedAttributes.map(attr => `<li>${attr}</li>`).join('')
+                );
             });
             
         } catch (error) {
@@ -999,20 +900,14 @@ class AttributeSelectorDialog extends Dialog {
     _saveAttributes(html) {
         // Sort the attributes to ensure consistent order
         this.selectedAttributes.sort();
-
+        
         // Save to settings
         const attributeString = this.selectedAttributes.join(',');
         game.settings.set("stream-visibility-tools", "statusTrackerAttributes", attributeString);
-
-        // Update the hidden input field in the settings UI
+        
+        // Update the input field in the settings UI
         $(`input[name="stream-visibility-tools.statusTrackerAttributes"]`).val(attributeString);
-
-        // Update the visual display
-        const attrDisplay = this.selectedAttributes.length > 0
-            ? this.selectedAttributes.map(attr => `<span class="attribute-tag">${attr}</span>`).join('')
-            : '<span class="no-attributes">No attributes selected</span>';
-        $('.selected-attributes-display').html(attrDisplay);
-
+        
         // Refresh the status tracker
         if (game.streamVisibilityTools?.statusTracker) {
             game.streamVisibilityTools.statusTracker.refresh();
