@@ -65,15 +65,8 @@ function applyVisibilitySettings() {
     if (key === "navBar") continue; // Skip nav bar as we handled it specially above
     
     const hide = game.settings.get("stream-visibility-tools", key);
-    if (key === "logo") {
-      setTimeout(() => {
-        const el = document.querySelector(selector);
-        if (el && hide) el.remove();
-      }, 200);
-    } else {
-      const el = document.querySelector(selector);
-      if (el) el.style.display = hide ? "none" : "";
-    }
+    const el = document.querySelector(selector);
+    if (el) el.style.display = hide ? "none" : "";
   }
 
   // Handle sidebar modifications

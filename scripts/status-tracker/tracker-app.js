@@ -24,28 +24,6 @@ export class PCStatusTracker extends Application {
       return t.actor?.type === "character" && t.visible;
     });
 
-      // Debug information for first token
-    if (pcTokens.length > 0) {
-      const firstActor = pcTokens[0].actor;
-      console.log("Debug - First actor:", firstActor.name);
-      console.log("Debug - Actor data:", firstActor.system || firstActor.data.data);
-      
-      // Dump all properties that have numeric values
-      const numericProps = [];
-      const findNumericProps = (obj, path = '') => {
-        for (let key in obj) {
-          if (obj[key] !== null && typeof obj[key] === 'object') {
-            findNumericProps(obj[key], path + key + '.');
-          } else if (typeof obj[key] === 'number') {
-            numericProps.push(`${path}${key}: ${obj[key]}`);
-          }
-        }
-      };
-      
-      findNumericProps(firstActor.system || firstActor.data.data);
-      console.log("Numeric properties:", numericProps);
-    }
-    
     // Get attribute paths to display
     const attributePaths = game.settings.get("stream-visibility-tools", "statusTrackerAttributes").split(",");
     const barColors = game.settings.get("stream-visibility-tools", "statusBarColors").split(",");

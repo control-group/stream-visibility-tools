@@ -34,34 +34,6 @@ export function registerSettings() {
     // =====================================================
     registerStatusTrackerSettings();
 
-    game.settings.register("stream-visibility-tools", "statusTrackerAttributes", {
-        name: "Status Tracker Attributes",
-        hint: "Comma-separated list of attribute paths to show in the tracker. Click to open selector.",
-        scope: "world",
-        config: true,
-        type: String,
-        default: "",
-        onChange: value => {
-          if (game.streamVisibilityTools?.statusTracker) {
-            game.streamVisibilityTools.statusTracker.refresh();
-          }
-        }
-      });
-    
-      game.settings.register("stream-visibility-tools", "statusBarColors", {
-        name: "Status Bar Colors",
-        hint: "Comma-separated list of colors to use for status bars.",
-        scope: "world",
-        config: true,
-        type: String,
-        default: "#00cc00,#cc0000",
-        onChange: value => {
-          if (game.streamVisibilityTools?.statusTracker) {
-            game.streamVisibilityTools.statusTracker.refresh();
-          }
-        }
-      });
-    
     // =====================================================
     // MISCELLANEOUS
     // =====================================================
