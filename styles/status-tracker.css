@@ -44,6 +44,13 @@
     gap: 3px;
   }
   
+  .pc-status-bar-label {
+    color: white;
+    font-size: 0.7em;
+    line-height: 1;
+    margin-bottom: 1px;
+  }
+
   .pc-status-bar {
     position: relative;
     height: 8px;

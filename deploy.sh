@@ -9,7 +9,7 @@
 set -eu
 
 REMOTE_HOST="${REMOTE_HOST:-foundrybox.local}"
-REMOTE_USER="${REMOTE_USER:-root}"
+REMOTE_USER="${REMOTE_USER:-mrcherwin}"
 REMOTE_PATH="${REMOTE_PATH:-/opt/foundryvtt/foundrydata-matt/Data/modules}"
 MODULE_NAME="stream-visibility-tools"
 

@@ -8,9 +8,12 @@
         <div class="pc-token-name">{{token.name}}</div>
         <div class="pc-status-bars">
           {{#each token.stats as |stat index|}}
-          <div class="pc-status-bar">
-            <div class="pc-status-bar-fill" style="width: {{stat.pct}}%; background-color: {{stat.color}}"></div>
-            <div class="pc-status-bar-text">{{stat.value}}/{{stat.max}}</div>
+          <div class="pc-status-stat">
+            <div class="pc-status-bar-label">{{stat.label}}</div>
+            <div class="pc-status-bar">
+              <div class="pc-status-bar-fill" style="width: {{stat.pct}}%; background-color: {{stat.color}}"></div>
+              <div class="pc-status-bar-text">{{#if stat.hasMax}}{{stat.value}}/{{stat.max}}{{else}}{{stat.value}}{{/if}}</div>
+            </div>
           </div>
           {{/each}}
         </div>

@@ -8,6 +8,7 @@ export function initializeUIController() {
   // Set up hooks
   Hooks.on("renderSidebarTab", () => setTimeout(() => applyVisibilitySettings(), 100));
   Hooks.on("renderSettings", () => setTimeout(() => applyVisibilitySettings(), 100));
+  Hooks.on("renderSceneNavigation", () => setTimeout(() => applyVisibilitySettings(), 100));
   
   // Listen for settings changes
   Hooks.on("updateSetting", (setting) => {
@@ -34,30 +35,23 @@ function applyVisibilitySettings() {
   console.log("Stream Visibility Tools | Applying visibility settings for target viewer");
 
   const selectors = {
-    navBar: "#navigation",
+    navBar: "#scene-navigation",
     chatLog: "#chat",
-    combatTracker: ".app.combat-tracker",
+    combatTracker: "#combat",
     sidebarTabs: "#sidebar",
     players: "#players",
     logo: "#logo",
-    sceneControls: "#controls",
+    sceneControls: "#scene-controls",
     macroHotbar: "#hotbar"
   };
 
-  // Handle the nav bar with special care
+  // Handle the nav bar with special care: Foundry re-renders #scene-navigation
+  // from scratch (e.g. on scene change), which wipes any inline style we set,
+  // so this needs to be re-applied on "renderSceneNavigation" too (see hook above).
   const hideNav = game.settings.get("stream-visibility-tools", "navBar");
-  if (hideNav) {
-    // Try multiple selector variations to ensure we catch the nav bar
-    const navSelectors = ["#navigation", "nav#navigation", ".navigation"];
-    navSelectors.forEach(selector => {
-      const elements = document.querySelectorAll(selector);
-      elements.forEach(el => {
-        el.style.display = "none";
-        // Add !important to force override any other styles
-        el.setAttribute("style", "display: none !important");
-      });
-    });
-    console.log("Stream Visibility Tools | Nav bar hidden with aggressive styling");
+  const navEl = document.querySelector("#scene-navigation");
+  if (navEl) {
+    navEl.style.setProperty("display", hideNav ? "none" : "", hideNav ? "important" : "");
   }
 
   // Handle the other elements as before
@@ -73,7 +67,7 @@ function applyVisibilitySettings() {
   const minimalSidebar = game.settings.get("stream-visibility-tools", "minimalSidebar");
   if (minimalSidebar) {
     const allowedTabs = ["chat", "settings"];
-    document.querySelectorAll("#sidebar-tabs a[data-tab]").forEach(el => {
+    document.querySelectorAll("#sidebar-tabs button[data-tab]").forEach(el => {
       const tab = el.dataset.tab;
       el.style.display = allowedTabs.includes(tab) ? "" : "none";
     });

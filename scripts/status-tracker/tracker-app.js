@@ -1,4 +1,6 @@
 // scripts/status-tracker/tracker-app.js
+import { humanizeAttributePath } from '../settings.js';
+
 export class PCStatusTracker extends Application {
     static get defaultOptions() {
       return mergeObject(super.defaultOptions, {
@@ -55,10 +57,13 @@ export class PCStatusTracker extends Application {
         
         // If we have a numeric value, create a stat object
         if (typeof obj === 'number') {
+          const hasMax = typeof maxObj === 'number';
           return {
+            label: humanizeAttributePath(path.trim()),
             value: obj,
-            max: typeof maxObj === 'number' ? maxObj : obj,
-            pct: typeof maxObj === 'number' ? (obj / maxObj * 100) : 100,
+            max: hasMax ? maxObj : obj,
+            hasMax,
+            pct: hasMax ? (obj / maxObj * 100) : 100,
             color: barColors[index] || 'gray'
           };
         }

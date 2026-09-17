@@ -90,11 +90,22 @@ function createSettingsSectionHeader(title, icon = "fas fa-cog") {
 function injectSettingsSections(html) {
     // Convert jQuery object to DOM element if needed
     const element = html instanceof jQuery ? html[0] : html;
-    
-    // Wait for the settings form to be available
-    const settingsForm = element.querySelector('section[data-tab="modules"] .settings-list');
+
+    // Wait for the settings form to be available. As of V13's category-browser
+    // settings layout, each module gets its own section[data-tab="<module-id>"]
+    // rather than a shared "modules" tab, and field ids are namespaced as
+    // "settings-config-<module-id>.<key>" (the "name" attribute is not
+    // reliable to key off, since it isn't namespaced the same way).
+    const settingsForm = element.querySelector('section[data-tab="stream-visibility-tools"]');
     if (!settingsForm) return;
-    
+
+    // The settings dialog fires renderSettingsConfig more than once while it
+    // progressively renders (and possibly again on later re-renders of the
+    // same open dialog). Without this guard, every pass re-injects headers
+    // and controls on top of whatever a previous pass already added.
+    if (settingsForm.dataset.svtOrganized) return;
+    settingsForm.dataset.svtOrganized = "true";
+
     // Define sections and their settings
     const sections = [
         {
@@ -146,51 +157,46 @@ function injectSettingsSections(html) {
         }
     ];
     
-    // Get all stream-visibility-tools settings
+    // Get all stream-visibility-tools settings, identified by their field id
+    // (e.g. "settings-config-stream-visibility-tools.macroHotbar")
     const allSettings = Array.from(settingsForm.querySelectorAll('.form-group'))
-        .filter(el => {
-            const input = el.querySelector('input, select');
-            return input && input.name && input.name.startsWith('stream-visibility-tools.');
-        });
-    
+        .filter(el => el.querySelector('[id^="settings-config-stream-visibility-tools."]'));
+    if (allSettings.length === 0) return;
+
+    // Capture the shared parent before any settings get moved below — every
+    // form-group here has the same parentNode, but once the loop below starts
+    // moving matched elements into the fragment, their parentNode becomes the
+    // fragment itself, so this must happen first.
+    const parent = allSettings[0].parentNode;
+
     // Create a document fragment to build our reorganized settings
     const fragment = document.createDocumentFragment();
-    
+
     // Process each section
     sections.forEach(section => {
         // Add section header
         const header = createSettingsSectionHeader(section.title, section.icon);
         fragment.appendChild(header);
-        
+
         // Find settings for this section
         section.settings.forEach(settingKey => {
-            const settingElement = allSettings.find(el => {
-                const input = el.querySelector('input, select');
-                return input && input.name === `stream-visibility-tools.${settingKey}`;
-            });
-            
+            const label = settingsForm.querySelector(`label[for="settings-config-stream-visibility-tools.${settingKey}"]`);
+            const settingElement = label ? label.closest('.form-group') : null;
+
             if (settingElement) {
                 fragment.appendChild(settingElement);
             }
         });
     });
     
-    // Replace the original settings with our organized version
-    if (allSettings.length > 0) {
-        const firstSetting = allSettings[0];
-        const parent = firstSetting.parentNode;
-        
-        // Remove all original settings
-        allSettings.forEach(el => el.remove());
-        
-        // Insert the organized settings
-        parent.appendChild(fragment);
+    // Insert the organized settings. Every matched form-group was already
+    // moved out of its original spot via fragment.appendChild() above, so
+    // there's nothing left to separately remove.
+    parent.appendChild(fragment);
 
-            // Now add our custom UI components - called AFTER reorganizing all settings
-            registerAttributeSelectorButton($(parent));
-            registerColorPickers($(parent));
-            
-    }
+    // Now add our custom UI components - called AFTER reorganizing all settings
+    registerAttributeSelectorButton($(parent));
+    registerColorPickers($(parent));
 }
 
 
@@ -382,8 +388,8 @@ function registerCameraSettings() {
 function registerUIVisibilitySettings() {
     // UI element visibility settings
     const elements = {
-        navBar: { 
-            selector: "#navigation", 
+        navBar: {
+            selector: "#scene-navigation",
             name: "Navigation Bar",
             hint: "Hide the navigation bar that shows scene tabs"
         },
@@ -392,8 +398,8 @@ function registerUIVisibilitySettings() {
             name: "Foundry Logo",
             hint: "Hide the Foundry VTT logo in the corner of the screen"
         },
-        sceneControls: { 
-            selector: "#controls", 
+        sceneControls: {
+            selector: "#scene-controls",
             name: "Scene Controls",
             hint: "Hide the scene control buttons on the left side"
         },
@@ -669,7 +675,7 @@ function registerAttributeSelectorButton(html) {
     </div>`;
     
     // Add it after all the padding settings
-    const lastPaddingSetting = $(element).find(`input[name="stream-visibility-tools.statusTrackerLeftPadding"]`).closest(".form-group");
+    const lastPaddingSetting = $(element).find(`label[for="settings-config-stream-visibility-tools.statusTrackerLeftPadding"]`).closest(".form-group");
     if (lastPaddingSetting.length) {
         lastPaddingSetting.after(attributeSettingHtml);
     } else {
@@ -744,6 +750,20 @@ function registerColorPickers(html) {
 }
 
 /**
+ * Turn a raw actor data path (e.g. "wounds.value") into a human-readable
+ * label (e.g. "Wounds"). Generic by design since this module supports any
+ * game system's actor data, not just one.
+ */
+export function humanizeAttributePath(path) {
+    return path
+        .replace(/\.value$/, '')
+        .split('.')
+        .map(part => part.replace(/([a-z0-9])([A-Z])/g, '$1 $2').replace(/[_-]+/g, ' '))
+        .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+        .join(' ');
+}
+
+/**
  * Dialog for selecting attributes to display in the status tracker
  */
 class AttributeSelectorDialog extends Dialog {
@@ -805,18 +825,18 @@ class AttributeSelectorDialog extends Dialog {
                     <div class="attributes">
                         ${attributePaths.map(path => `
                             <div class="attribute-item">
-                                <input type="checkbox" id="attr-${path}" 
-                                       data-path="${path}" 
+                                <input type="checkbox" id="attr-${path}"
+                                       data-path="${path}"
                                        ${this.selectedAttributes.includes(path) ? 'checked' : ''}>
-                                <label for="attr-${path}">${path}</label>
+                                <label for="attr-${path}" title="${path}">${humanizeAttributePath(path)}</label>
                             </div>
                         `).join('')}
                     </div>
-                    
+
                     <div class="currently-selected">
                         <h3>Currently Selected:</h3>
                         <ul id="selected-attributes">
-                            ${this.selectedAttributes.map(attr => `<li>${attr}</li>`).join('')}
+                            ${this.selectedAttributes.map(attr => `<li>${humanizeAttributePath(attr)}</li>`).join('')}
                         </ul>
                     </div>
                 </div>
@@ -837,7 +857,7 @@ class AttributeSelectorDialog extends Dialog {
                 
                 // Update the selected list
                 this.element.find("#selected-attributes").html(
-                    this.selectedAttributes.map(attr => `<li>${attr}</li>`).join('')
+                    this.selectedAttributes.map(attr => `<li>${humanizeAttributePath(attr)}</li>`).join('')
                 );
             });
             
